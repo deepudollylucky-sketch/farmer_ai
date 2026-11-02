@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Karnataka Market Prices | Farmer Helper</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <main class="page-shell workflow-page">
+    <nav class="workflow-nav" aria-label="Workflow">
+      <form action="{{ url_for('recommendations_page') }}" method="post">
+        <input type="hidden" name="district" value="{{ farm.district }}">
+        <input type="hidden" name="taluk" value="{{ farm.taluk }}">
+        <input type="hidden" name="village" value="{{ farm.village }}">
+        <input type="hidden" name="landArea" value="{{ farm.land_area }}">
+        <input type="hidden" name="soilType" value="{{ farm.soil_type }}">
+        <input type="hidden" name="waterAvailability" value="{{ farm.water_availability }}">
+        <button type="submit" class="text-back">← Crop recommendations</button>
+      </form>
+      <span>Step 3 of 3</span>
+    </nav>
+
+    <section class="market-final">
+      <header class="market-final-header">
+        <h1><span aria-hidden="true">📈</span> Karnataka Market Prices</h1>
+        <p class="market-crop">{{ crop.crop }}</p>
+        <p class="market-location">Farm location: <strong>{{ farm.village }}{% if farm.village %}, {% endif %}{{ farm.taluk }}{% if farm.taluk %}, {% endif %}{{ farm.district }}</strong></p>
+        <p class="market-location">Showing markets across all 31 Karnataka districts</p>
+      </header>
+
+      <div class="market-final-content">
+        <p class="market-disclaimer"><strong>Note:</strong> The bundled dataset contains historical Hassan samples only. Other district prices below are illustrative estimates, not live APMC prices. Profit figures are estimates, not guarantees.</p>
+        <section class="profit-estimator" aria-labelledby="profit-estimator-title">
+          <h2 id="profit-estimator-title">Estimate your profit by market</h2>
+          <p>Travel expense and net profit update automatically. Starting harvest and cultivation-cost estimates use your farm area; edit them below.</p>
+          <div class="profit-inputs">
+            <label>
+              <span>Expected total harvest (quintals)</span>
+              <input id="expected-harvest" type="number" min="0" step="0.1" value="{{ '%.1f'|format(farm.land_area * 20) }}">
+            </label>
+            <label>
+              <span>Total cultivation cost (₹)</span>
+              <input id="cultivation-cost" type="number" min="0" step="100" value="{{ farm.land_area * 25000 }}">
+            </label>
+            <label>
+              <span>Transport cost (₹ per km, for the full load)</span>
+              <input id="travel-cost" type="number" min="0" step="1" value="25">
+            </label>
+          </div>
+          <p id="best-market-summary" class="best-market-summary" aria-live="polite"></p>
+        </section>
+
+        <div class="market-table-scroll">
+          <table class="market-table final-market-table">
+            <thead>
+              <tr>
+                <th>Market</th><th>District</th><th>Date</th><th>Min ₹/q</th><th>Max ₹/q</th><th>Modal ₹/q</th>
+                <th>Estimated one-way distance (km)</th><th>Estimated travel expense (₹)</th><th>Estimated net profit (₹)</th>
+              </tr>
+            </thead>
+            <tbody id="market-table-body">
+              {% for market in market_rows %}
+                <tr data-market="{{ market.market }}" data-district="{{ market.district }}" data-date="{{ market.date }}" data-min="{{ market.min_price }}" data-max="{{ market.max_price }}" data-price="{{ market.price_per_quintal }}" data-distance="{{ market.distance_km }}">
+                  <td>{{ market.market }}</td><td>{{ market.district }}</td><td>{{ market.date }}</td>
+                  <td>₹{{ '{:,.0f}'.format(market.min_price) }}</td><td>₹{{ '{:,.0f}'.format(market.max_price) }}</td>
+                  <td>₹{{ '{:,.0f}'.format(market.price_per_quintal) }}</td><td>{{ market.distance_km }}</td>
+                  <td>₹{{ '{:,.0f}'.format(market.travel_cost) }}</td><td>₹{{ '{:,.0f}'.format(market.net_return) }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <p class="market-footnote">Distances are approximate straight-line district-center distances, not road routes. Travel expense assumes a round trip at the entered rate for the full load. Cultivation costs use a general estimate and exclude loading, packaging, market fees, and price changes.</p>
+      </div>
+    </section>
+  </main>
+  <script src="{{ url_for('static', filename='markets.js') }}" defer></script>
+</body>
+</html>

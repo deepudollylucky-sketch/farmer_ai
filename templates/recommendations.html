@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Crop Recommendations | Farmer Helper</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <main class="page-shell workflow-page">
+    <nav class="workflow-nav" aria-label="Workflow">
+      <a href="{{ url_for('home') }}">← Edit farm details</a>
+      <span>Step 2 of 3</span>
+    </nav>
+    <header class="hero-card workflow-heading">
+      <div class="brand-row"><span class="brand-icon">🌱</span><h1>Crop Recommendations</h1></div>
+      <p class="subtitle">15 crop options matched to your farm</p>
+      <p class="farm-summary">{{ farm.village }}{% if farm.village and farm.taluk %}, {% endif %}{{ farm.taluk }}{% if farm.taluk %}, {% endif %}{{ farm.district }} · {{ farm.land_area }} acres</p>
+    </header>
+
+    <section class="weather-panel weather-step-card" aria-label="Local weather">
+      <h2 class="weather-title">Local Weather · {{ farm.district }}</h2>
+      <div class="weather-grid">
+        {% for day in weather %}
+          <article class="weather-card">
+            <strong class="weather-label">{{ day.day }}</strong>
+            <div class="weather-value">{{ day.temp_c }}° C</div>
+            <div class="weather-label">{{ day.condition }} · {{ day.rainfall_mm }} mm rain</div>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+
+    <p class="market-disclaimer crop-disclaimer"><strong>Price note:</strong> Crop prices and profit estimates are sample references, not live market quotes or guaranteed returns.</p>
+    <section class="crop-catalog" aria-label="Crop options">
+      {% for item in recommendations %}
+        <article class="recommendation-item crop-detail-card{% if loop.first %} is-best-crop{% endif %}">
+          <div class="recommendation-header">
+            <span class="badge">{% if loop.first %}Best crop for your farm{% else %}Option {{ loop.index }}{% endif %}</span>
+          </div>
+          <h2 class="crop-name">{{ item.crop }}</h2>
+          <p class="crop-note">{{ item.reason }}</p>
+          <dl class="crop-facts">
+            <div><dt>Season</dt><dd>{{ item.season }}</dd></div>
+            <div><dt>Suitable soil</dt><dd>{{ item.soil }}</dd></div>
+            <div><dt>Water</dt><dd>{{ item.water }}</dd></div>
+            <div><dt>Sample yield</dt><dd>{{ item.yield }} q/acre</dd></div>
+            <div><dt>Sample modal price</dt><dd>₹{{ '{:,.0f}'.format(item.price_per_quintal) }}/q</dd></div>
+            <div><dt>Estimated net / acre</dt><dd>₹{{ '{:,.0f}'.format(item.estimated_profit_per_acre) }}</dd></div>
+          </dl>
+          <div class="score-box"><span>Suitability and sample-return score</span><strong>{{ item.score }}/100</strong></div>
+          <form action="{{ url_for('markets_page') }}" method="post">
+            <input type="hidden" name="district" value="{{ farm.district }}">
+            <input type="hidden" name="taluk" value="{{ farm.taluk }}">
+            <input type="hidden" name="village" value="{{ farm.village }}">
+            <input type="hidden" name="landArea" value="{{ farm.land_area }}">
+            <input type="hidden" name="soilType" value="{{ farm.soil_type }}">
+            <input type="hidden" name="waterAvailability" value="{{ farm.water_availability }}">
+            <input type="hidden" name="crop" value="{{ item.crop }}">
+            <button type="submit" class="secondary-button">View all district prices</button>
+          </form>
+        </article>
+      {% endfor %}
+    </section>
+  </main>
+</body>
+</html>
